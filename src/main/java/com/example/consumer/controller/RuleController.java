@@ -1,8 +1,10 @@
 package com.example.consumer.controller;
 
+import com.example.consumer.service.RuleProcessorService;
 import com.example.ruleengine.loader.RuleLoader;
 import com.example.ruleengine.rules.DynamicExpressionRule;
 import com.example.ruleengine.service.RuleEngineFacade;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -11,7 +13,8 @@ import java.util.*;
 @RequestMapping("/api")
 public class RuleController {
 
-
+    @Autowired
+    private RuleProcessorService ruleService;
 
     /**
      * Endpoint to evaluate rules against input facts.
@@ -43,5 +46,12 @@ public class RuleController {
     private Map<String, Object> extractFacts(Map<String, Object> input) {
         Object facts = input.get("facts");
         return (facts instanceof Map) ? (Map<String, Object>) facts : input;
+    }
+
+    @PostMapping("/check-access")
+    public String checkAccessAndAct(@RequestBody Map<String, Object> inputFacts) {
+        Map<String, Object> facts = (Map<String, Object>) inputFacts.getOrDefault("facts", inputFacts);
+        ruleService.evaluateAndProcess(facts);
+        return "Access decision processed. Check logs for result.";
     }
 }
